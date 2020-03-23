@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<launch>
+ 
+    <node name="pointcloud_mapping" pkg="pointcloud_mapping" type="pointcloud_mapping" output="screen">
+      
+	<param name="topicColor" type="string" value="/RGBD/RGB/Image"/>
+	<param name="topicDepth" type="string" value="/RGBD/Depth/Image"/>
+	<param name="topicTcw" type="string" value="/RGBD/CameraPose"/>
+
+	<param name="fx" type="double" value="517.306408"/>
+	<param name="fy" type="double" value="516.469215"/>
+	<param name="cx" type="double" value="318.643040"/>
+	<param name="cy" type="double" value="255.313989"/>
+	<param name="resolution" type="double" value="0.01"/>
+    </node>
+
+  <node pkg="octomap_server" type="octomap_server_node" name="octomap_server">
+
+    <!-- resolution in meters per pixel -->
+    <param name="resolution" value="0.05" />
+
+    <!-- name of the fixed frame, needs to be "/map" for SLAM -->
+    <param name="frame_id" type="string" value="/world" />
+
+    <!-- max range / depth resolution of the kinect in meter -->
+    <param name="sensor_model/max_range" value="50.0" />
+    <param name="latch" value="true" />
+
+    <!-- max/min height for occupancy map, should be in meters -->
+    <param name="pointcloud_max_z" value="1000" />
+    <param name="pointcloud_min_z" value="0" />
+
+    <!-- topic from where pointcloud2 messages are subscribed -->
+    <remap from="/cloud_in" to="/pointcloud_mapping/Local/PointCloudOutput" />
+
+  </node>
+
+   <!-- RViz -->
+  <node pkg="rviz" type="rviz" name="rviz" respawn="false" output="screen" args="-d $(find pointcloud_mapping)/rviz/tumWithOctomap.rviz" />
+	 
+</launch>
