@@ -104,7 +104,7 @@ protected:
     float mresolution = 0.04;
 	float mcx=0,mcy=0,mfx=0,mfy=0;
     pcl::VoxelGrid<PointT>  voxel; //点云显示精度
-    
+    float mDepthMapFactor =1; //深度图尺度因子
      size_t  lastKeyframeSize =0; // 
      size_t mGlobalPointCloudID=0; //点云ID
      size_t  mLastGlobalPointCloudID=0;
@@ -151,8 +151,8 @@ protected:
 	
 	
 	
-    PointCloud::Ptr generatePointCloud( cv::Mat& color, cv::Mat& depth,Eigen::Isometry3d &T);
-   PointCloud::Ptr generatePointCloud( cv::Mat& color, cv::Mat& depth);
+   PointCloud::Ptr generatePointCloud( cv::Mat& color, cv::Mat& depth,Eigen::Isometry3d &T);
+   
    void compressPointCloud(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr& cloud,std::stringstream& compressedData);
    void depressPointCloud(std::stringstream& compressedData,pcl::PointCloud<pcl::PointXYZRGBA>::Ptr& cloudOut);
    Eigen::Matrix4f cvMat2Eigen(const cv::Mat &cvT);
