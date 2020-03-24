@@ -115,7 +115,7 @@ PointCloudMapper::PointCloudMapper(float fx_,float fy_,float cx_,float cy_,float
 	cout<<"cx: "<<cx_<<endl;
 	cout<<"cy: "<<cy_<<endl;
 	cout<<"resolution: "<<resolution_<<endl;
-
+    cout<<"mdepthfactor: "<<mDepthMapFactor<<endl;
 
 	if(mbuseExact)
 	{
@@ -177,10 +177,10 @@ pcl::PointCloud< PointCloudMapper::PointT >::Ptr PointCloudMapper::generatePoint
             float d = depth.ptr<float>(m)[n]/mDepthMapFactor;
             if (d < 0.01 || d>10)
 			{
-				if(d < 0.01)
-				cout<<".";
-				else if(d>10)
-				cout<<"+";
+				//if(d < 0.01)
+				//cout<<".";
+				//else if(d>10)
+				//cout<<"+";
 				continue;
 			}
             PointT p;
