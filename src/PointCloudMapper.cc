@@ -71,7 +71,8 @@ PointCloudMapper::PointCloudMapper(float fx_,float fy_,float cx_,float cy_,float
 	pub_local_pointcloud = nh.advertise<sensor_msgs::PointCloud2> ("Local/PointCloudOutput", 10); 
 
 	std::string topicColor ,topicDepth,topicTcw;
-
+	float mdepthfactor_=1;
+	
 	if(ros::param::get("~topicColor" ,topicColor))
 	;
 	else
@@ -90,12 +91,13 @@ PointCloudMapper::PointCloudMapper(float fx_,float fy_,float cx_,float cy_,float
 	nh.param<float>("cx", cx_, 317.9098);
 	nh.param<float>("cy", cy_, 241.5734);
 	nh.param<float>("resolution", resolution_, 0.05);
+	nh.param<float>("mdepthfactor", mdepthfactor_, 1);
 	mcx = cx_;
 	mcy = cy_;
 	mfx = fx_;
 	mfy = fy_;
 	mresolution = resolution_;
-
+    mDepthMapFactor = mdepthfactor_;
 	image_transport::TransportHints hints(mbuseCompressed ? "compressed" : "raw");
 	subImageColor = new image_transport::SubscriberFilter(it, topicColor, queueSize, hints);
 	subImageDepth = new image_transport::SubscriberFilter(it, topicDepth, queueSize, hints);

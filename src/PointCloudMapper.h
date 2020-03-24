@@ -102,6 +102,7 @@ public:
 protected:
      unsigned int index=0;
     float mresolution = 0.04;
+	float mDepthMapFactor;
 	float mcx=0,mcy=0,mfx=0,mfy=0;
     pcl::VoxelGrid<PointT>  voxel; //点云显示精度
     
