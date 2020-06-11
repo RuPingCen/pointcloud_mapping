@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<launch>
+ 
+	<node pkg="pointcloud_mapping" type="mappingWithPointCloud" name="mappingWithPointCloud" output="screen">
+ 
+	<param name="topicTcw" type="string" value="/STEREO/CameraPose"/>
+	<param name="topicPointCloud" type="string" value="/elas/point_cloud"/>
+	 
+	<param name="resolution" type="double" value="0.1"/>
+	<param name="queueSize" type="int" value="10"/>
+	<param name="mbuseExact" type="bool" value="0"/>
+
+
+	</node>
+
+</launch>

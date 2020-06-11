@@ -49,10 +49,10 @@
 #include <pcl/visualization/cloud_viewer.h>
 #include <pcl/compression/compression_profiles.h>
 #include <pcl/compression/octree_pointcloud_compression.h>
-#include<pcl/common/transforms.h>
+#include <pcl/common/transforms.h>
 #include <pcl/filters/filter.h>
-#include<pcl/filters/passthrough.h>
- #include<pcl/filters/voxel_grid.h>
+#include <pcl/filters/passthrough.h>
+#include <pcl/filters/voxel_grid.h>
  
  #include <opencv2/opencv.hpp>
  #include <ros/ros.h>
@@ -71,7 +71,6 @@
 #include <message_filters/sync_policies/exact_time.h>
 #include <message_filters/sync_policies/approximate_time.h>
 
-#include "orbslam2_ros/RGBDPose.h" //自定义消息类型
 
  using namespace std;
 namespace Mapping
@@ -83,11 +82,11 @@ public:
     typedef pcl::PointXYZRGBA PointT;
     typedef pcl::PointCloud<PointT> PointCloud;
 	 bool mbuseExact, mbuseCompressed;
-	 const size_t queueSize;
+	 size_t queueSize;
 	 
 	 
 
-	PointCloudMapper(float fx_,float fy_,float cx_,float cy_,float resolution_);
+	PointCloudMapper();
 	~PointCloudMapper();
 
 	// 插入一个keyframe，会更新一次地图
@@ -97,12 +96,13 @@ public:
 	void reset();
 	void shutdown();
 	void callback(const sensor_msgs::Image::ConstPtr msgRGB,
-				  const sensor_msgs::Image::ConstPtr msgD,
-				  const geometry_msgs::PoseStamped::ConstPtr tcw);
+				  const sensor_msgs::Image::ConstPtr msgD,  const geometry_msgs::PoseStamped::ConstPtr tcw);
+	void callback_pointcloud(const sensor_msgs::PointCloud2::ConstPtr msgPointCloud,
+								const geometry_msgs::PoseStamped::ConstPtr tcw );
 protected:
-     unsigned int index=0;
+    unsigned int index=0;
     float mresolution = 0.04;
-	float mDepthMapFactor;
+	float mDepthMapFactor=1000.0;
 	float mcx=0,mcy=0,mfx=0,mfy=0;
     pcl::VoxelGrid<PointT>  voxel; //点云显示精度
     
@@ -130,9 +130,12 @@ protected:
     bool    mbKeyFrameUpdate    =false;        //有新的关键帧插入
     mutex   keyframeMutex;
     mutex keyFrameUpdateMutex;
+	mutex deletekeyframeMutex;
  
 	typedef message_filters::sync_policies::ExactTime<sensor_msgs::Image, sensor_msgs::Image, geometry_msgs::PoseStamped> ExactSyncPolicy;
 	typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image, geometry_msgs::PoseStamped> ApproximateSyncPolicy;
+	//typedef message_filters::sync_policies::ExactTime<sensor_msgs::PointCloud2, geometry_msgs::PoseStamped> ExactSyncPolicy_2;
+	//typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, geometry_msgs::PoseStamped> ApproximateSyncPolicy_2;
 
 
 	std::string topic_sub;  //ROS varible
@@ -143,11 +146,12 @@ protected:
 	image_transport::ImageTransport it;
 	image_transport::SubscriberFilter *subImageColor, *subImageDepth;
 	message_filters::Subscriber<geometry_msgs::PoseStamped> *tcw_sub;
- 
+    message_filters::Subscriber<sensor_msgs::PointCloud2> *pointcloud_sub;
 
 	message_filters::Synchronizer<ExactSyncPolicy> *syncExact;
 	message_filters::Synchronizer<ApproximateSyncPolicy> *syncApproximate;
-
+	//message_filters::Synchronizer<ExactSyncPolicy_2> *syncExact_2 ;
+	//message_filters::Synchronizer<ApproximateSyncPolicy_2> *syncApproximate_2 ;
 	
 	
 	

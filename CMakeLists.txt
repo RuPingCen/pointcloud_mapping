@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(pointcloud_mapping)
-
+set(CMAKE_BUILD_TYPE Release)
 
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBT_USE_DOUBLE_PRECISION -Wall")
@@ -51,7 +51,6 @@ find_package(catkin REQUIRED COMPONENTS
 	image_transport 
 	compressed_image_transport 
 	compressed_depth_image_transport 
-	orbslam2_ros
 )
  
 
@@ -167,13 +166,17 @@ include_directories(include
 	${catkin_INCLUDE_DIRS}
 	${OpenCV_INCLUDE_DIRS}
 	${PCL_INCLUDE_DIRS}
-	#${kinect2_bridge_INCLUDE_DIRS}
   	src
 )
 
- 
-add_executable(pointcloud_mapping  src/pointcloud_mapping.cpp src/PointCloudMapper.cc)
+ ## Declare a C++ executable
+add_executable(pointcloud_mapping  src/pointcloud_mapping.cpp  src/PointCloudMapper.cc)
 
+## Add cmake target dependencies of the executable
+## same as for the library above
+# add_dependencies(orbslam2_with_kinect2_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+## Specify libraries to link a library or executable target against
 target_link_libraries(pointcloud_mapping
 	${catkin_LIBRARIES}
 	${OpenCV_LIBRARIES}
@@ -182,18 +185,18 @@ target_link_libraries(pointcloud_mapping
 	#${PROJECT_SOURCE_DIR}/lib/libORB_SLAM2.so
 	#${Pangolin_LIBRARIES}
 )
-
-## Declare a C++ executable
-# add_executable(orbslam2_with_kinect2_node src/orbslam2_with_kinect2_node.cpp)
-
-## Add cmake target dependencies of the executable
-## same as for the library above
-# add_dependencies(orbslam2_with_kinect2_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-## Specify libraries to link a library or executable target against
-# target_link_libraries(orbslam2_with_kinect2_node
-#   ${catkin_LIBRARIES}
-# )
+ ## Declare a C++ executable
+add_executable(mappingWithPointCloud  src/mappingWithPointCloud.cpp )
+ ##add_dependencies(mappingWithPointCloud 
+ ##			${${PROJECT_NAME}_EXPORTED_TARGETS} 
+ ##			${catkin_EXPORTED_TARGETS}
+ ##)
+target_link_libraries(mappingWithPointCloud
+	${catkin_LIBRARIES}
+	${OpenCV_LIBRARIES}
+	${PCL_LIBRARIES}
+)
+ 
 
 #############
 ## Install ##

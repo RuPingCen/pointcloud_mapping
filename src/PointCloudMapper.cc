@@ -58,20 +58,21 @@ namespace Mapping
  * 
  * @ 设置点云分辨率
  */
-PointCloudMapper::PointCloudMapper(float fx_,float fy_,float cx_,float cy_,float resolution_)
-									:nh("~"), queueSize(10), spinner(0), it(nh)
+PointCloudMapper::PointCloudMapper()
+									:nh("~"), spinner(0), it(nh)
 {
-	mbuseExact = true;  //
+	float fx_,  fy_,  cx_,  cy_,  resolution_,depthfactor_;
+	int queueSize_;
+	bool mbuseExact_;
+	
 	mbuseCompressed = false;
 	lastKeyframeSize=0;
 	mGlobalPointCloudID=0; //点云ID
 	mLastGlobalPointCloudID=0;
-
-	pub_global_pointcloud= nh.advertise<sensor_msgs::PointCloud2> ("Global/PointCloudOutput", 1); 
-	pub_local_pointcloud = nh.advertise<sensor_msgs::PointCloud2> ("Local/PointCloudOutput", 10); 
-
-	std::string topicColor ,topicDepth,topicTcw;
-	float mdepthfactor_=1;
+	queueSize =10;
+ 
+	std::string topicColor ,topicDepth,topicTcw,topicPointCloud;
+ 
 	
 	if(ros::param::get("~topicColor" ,topicColor))
 	;
@@ -85,35 +86,47 @@ PointCloudMapper::PointCloudMapper(float fx_,float fy_,float cx_,float cy_,float
 	;
 	else
 	topicTcw = "/RGBD/CameraPose";
+ 
 
 	nh.param<float>("fx", fx_, 515.2888);
 	nh.param<float>("fy", fy_, 517.6610);
 	nh.param<float>("cx", cx_, 317.9098);
 	nh.param<float>("cy", cy_, 241.5734);
 	nh.param<float>("resolution", resolution_, 0.05);
-	nh.param<float>("mdepthfactor", mdepthfactor_, 1);
+	nh.param<float>("depthfactor", depthfactor_, 1000.0);
+ 
+	nh.param<int>("queueSize", queueSize_, 10);
+	nh.param<bool>("mbuseExact", mbuseExact_, true);
+ 
+	mbuseExact = mbuseExact_;  //
+	queueSize=queueSize_;
 	mcx = cx_;
 	mcy = cy_;
 	mfx = fx_;
 	mfy = fy_;
 	mresolution = resolution_;
-    mDepthMapFactor = mdepthfactor_;
+	mDepthMapFactor = depthfactor_;
+	
 	image_transport::TransportHints hints(mbuseCompressed ? "compressed" : "raw");
 	subImageColor = new image_transport::SubscriberFilter(it, topicColor, queueSize, hints);
 	subImageDepth = new image_transport::SubscriberFilter(it, topicDepth, queueSize, hints);
 	tcw_sub = new message_filters::Subscriber<geometry_msgs::PoseStamped>(nh, topicTcw, queueSize);
-
+ 
 	cout<<"topicColor: "<<topicColor<<endl;
 	cout<<"topicDepth: "<<topicDepth<<endl;
 	cout<<"topicTcw: "<<topicTcw<<endl;
+ 
 
 	cout<<"fx: "<<fx_<<endl;
 	cout<<"fy: "<<fy_<<endl;
 	cout<<"cx: "<<cx_<<endl;
 	cout<<"cy: "<<cy_<<endl;
 	cout<<"resolution: "<<resolution_<<endl;
-
-
+	cout<<"DepthMapFactor: "<<depthfactor_<<endl;
+ 	cout<<"queueSize: "<<queueSize<<endl;
+	cout<<"mbuseExact: "<<mbuseExact<<endl;
+	
+    //接受RGB DepTh 位姿数据
 	if(mbuseExact)
 	{
 		syncExact = new message_filters::Synchronizer<ExactSyncPolicy>(ExactSyncPolicy(queueSize), *subImageColor, *subImageDepth, *tcw_sub);
@@ -124,7 +137,7 @@ PointCloudMapper::PointCloudMapper(float fx_,float fy_,float cx_,float cy_,float
 		syncApproximate = new message_filters::Synchronizer<ApproximateSyncPolicy>(ApproximateSyncPolicy(queueSize), *subImageColor, *subImageDepth, *tcw_sub);
 		syncApproximate->registerCallback(boost::bind(&PointCloudMapper::callback, this, _1, _2, _3));
 	}
-
+  
 	voxel.setLeafSize( mresolution, mresolution, mresolution);
 	globalMap = boost::make_shared< PointCloud >( );
 	localMap = boost::make_shared< PointCloud >( );
@@ -154,7 +167,7 @@ void PointCloudMapper::insertKeyFrame( cv::Mat& color, cv::Mat& depth,Eigen::Iso
 	//mvLocalColorImgs.clear();     
 	//mvLocalDepthImgs.clear();     
 
-	mLastGlobalPointCloudID=mGlobalPointCloudID;
+	//mLastGlobalPointCloudID=mGlobalPointCloudID;
 	mGlobalPointCloudID++;
 	mbKeyFrameUpdate =true;
  
@@ -174,7 +187,7 @@ pcl::PointCloud< PointCloudMapper::PointT >::Ptr PointCloudMapper::generatePoint
     {
         for ( int n=0; n<depth.cols; n+=3 )
         {
-            float d = depth.ptr<float>(m)[n]/1000;
+            float d = depth.ptr<float>(m)[n]/mDepthMapFactor;
             if (d < 0.01 || d>10)
 			{
 // 				if(d < 0.01)
@@ -195,30 +208,22 @@ pcl::PointCloud< PointCloudMapper::PointT >::Ptr PointCloudMapper::generatePoint
             tmp->points.push_back(p);
         }
     }
-   
-	// rotation the pointcloud and stiching 
-	PointCloud::Ptr cloud1(new PointCloud);
-	pcl::transformPointCloud( *tmp, *cloud1, T.inverse().matrix());
-
-	chrono::steady_clock::time_point t2 = chrono::steady_clock::now();
-	chrono::duration<double> time_used = chrono::duration_cast<chrono::duration<double>>( t2-t1 );
-	cout<<"generate point cloud  cost time: "<<time_used.count()*1000<<" ms ."<<endl;
-
-	cloud1->is_dense = false;
-	voxel.setInputCloud( cloud1 );
-	voxel.filter( *tmp );
-	cloud1->swap( *tmp );
-	//mvGlobalPointClouds.push_back(*cloud1) ;    //点云数据 
-
-	// 	 sensor_msgs::PointCloud2 output;  
-	// 	 pcl::toROSMsg(*cloud1,output);// 转换成ROS下的数据类型 最终通过topic发布
-	// 	 output.header.stamp=ros::Time::now();
-	// 	 output.header.frame_id  ="camera";
-	// 	 pub_local_pointcloud.publish(output);
-
-	cout<<"generate point cloud from  kf-ID:"<<mGlobalPointCloudID<<", size="<<cloud1->points.size()<<endl;
-
-    return cloud1;
+    
+         PointCloud::Ptr cloud_voxel_tem(new PointCloud);
+		tmp->is_dense = false;
+		voxel.setInputCloud( tmp );
+		voxel.setLeafSize( mresolution, mresolution, mresolution);
+		voxel.filter( *cloud_voxel_tem );
+	  
+	    PointCloud::Ptr cloud1(new PointCloud);
+		pcl::transformPointCloud( *cloud_voxel_tem, *cloud1, T.matrix());
+ 
+   	  chrono::steady_clock::time_point t2 = chrono::steady_clock::now();
+	  chrono::duration<double> time_used = chrono::duration_cast<chrono::duration<double>>( t2-t1 );
+	   
+	  cout<<GREEN<<"generate point cloud from  kf-ID:"<<mLastGlobalPointCloudID<<", size="<<cloud1->points.size()<<" cost time: "<<time_used.count()*1000<<" ms ."<<WHITE<<endl;
+	  mLastGlobalPointCloudID++;
+	 return cloud1;
 }
 pcl::PointCloud< PointCloudMapper::PointT >::Ptr PointCloudMapper::generatePointCloud( cv::Mat& color, cv::Mat& depth)
 {
@@ -268,19 +273,19 @@ pcl::PointCloud< PointCloudMapper::PointT >::Ptr PointCloudMapper::generatePoint
 	bool KFUpdate=false;
 	bool LoopCloserUpdate=false;
 
-
+ 
 	ros::AsyncSpinner spinner(2); // Use 1threads
 	spinner.start();
  
 	while(ros::ok())
     {
-        {
-            unique_lock<mutex> lck_shutdown( shutDownMutex );
-            if (shutDownFlag)
-            {
-                break;
-            }
-        }
+//         {
+//             unique_lock<mutex> lck_shutdown( shutDownMutex );
+//             if (shutDownFlag)
+//             {
+//                 break;
+//             }
+//         }
     
         // keyframe is updated 
 		KFUpdate=false;
@@ -292,7 +297,7 @@ pcl::PointCloud< PointCloudMapper::PointT >::Ptr PointCloudMapper::generatePoint
 	   }
 	  if(KFUpdate)
 	  {
-		  for (  i=lastKeyframeSize; i<N; i++ )  
+		  for (  i=lastKeyframeSize; i<N&& i<(lastKeyframeSize+5); i++ )  
 		  {
 			  if((mvGlobalPointCloudsPose.size() != colorImgs.size() )|| (mvGlobalPointCloudsPose.size()!= depthImgs.size() ) || (depthImgs.size() != colorImgs.size() ))
 			  {
@@ -302,13 +307,10 @@ pcl::PointCloud< PointCloudMapper::PointT >::Ptr PointCloudMapper::generatePoint
 			   continue;
 			  }
 			  PointCloud::Ptr tem_cloud1( new PointCloud() );
-			  // PointCloud::Ptr tem_cloud2(new PointCloud);
 			  cout<<"i: "<<i<<"  mvPosePointClouds.size(): "<<mvGlobalPointCloudsPose.size()<<endl;
-			  //生成一幅点云大约在０．１s左右        点云数据 
+			  //生成一幅点云大约在０．１s左右 点云数据 
 			  tem_cloud1= generatePointCloud(colorImgs[i], depthImgs[i],mvGlobalPointCloudsPose[i]); 
-			  // tem_cloud1= generatePointCloud(colorImgs[i], depthImgs[i]);
-			  // Eigen::Isometry3d T_cw = mvGlobalPointCloudsPose[i];
-			  // pcl::transformPointCloud( *tem_cloud1, *tem_cloud2,T_cw.inverse().matrix());
+ 
 			  if(tem_cloud1->empty())
 			  continue;
 
@@ -320,8 +322,20 @@ pcl::PointCloud< PointCloudMapper::PointT >::Ptr PointCloudMapper::generatePoint
 			  local.header.frame_id  ="world";
 			  pub_local_pointcloud.publish(local);
 		  }
+		   {
+			int buff_length=150;
+			if(i > (buff_length+5))
+			{
+				   	unique_lock<mutex> lck( deletekeyframeMutex );
+					mvGlobalPointCloudsPose.erase(mvGlobalPointCloudsPose.begin(),mvGlobalPointCloudsPose.begin()+buff_length/2);
+					depthImgs.erase(depthImgs.begin(),depthImgs.begin()+buff_length);
+					colorImgs.erase(colorImgs.begin(),colorImgs.begin()+buff_length);
+					i=i-buff_length;
+					cout<<RED<<"delete keyframe ...."<<WHITE<<endl;
+			}
+		}
+		
 		 lastKeyframeSize = i;
-		 
 		 sensor_msgs::PointCloud2 output;  
 		 pcl::toROSMsg(*globalMap,output);// 转换成ROS下的数据类型 最终通过topic发布
 		 output.header.stamp=ros::Time::now();
@@ -329,12 +343,16 @@ pcl::PointCloud< PointCloudMapper::PointT >::Ptr PointCloudMapper::generatePoint
 		 pub_global_pointcloud.publish(output);
 		 	 
          pcl_viewer.showCloud( globalMap );
-		 cout<<"show global map, size="<<globalMap->points.size()<<endl;	
+		 cout<<"show global map, size="<<globalMap->points.size()<<endl;
+		 //if((lastKeyframeSize%3 == 0 )&& (globalMap->points.size()>0))
+		 if((N==i )&& (globalMap->points.size()>0))
+			shutdown();
 	   }	
+	  
+		 //ros::spinOnce(); 
 	}
-	spinner.stop();
-	ros::shutdown();
-	ros::waitForShutdown();
+	//spinner.stop();
+
 }
  
    
@@ -383,9 +401,7 @@ cv::applyColorMap(tmp, out, cv::COLORMAP_JET);
 }
 
 void PointCloudMapper::callback(const sensor_msgs::Image::ConstPtr msgRGB,
-								const sensor_msgs::Image::ConstPtr msgD,
-								const geometry_msgs::PoseStamped::ConstPtr tcw
-							   )
+								const sensor_msgs::Image::ConstPtr msgD,	const geometry_msgs::PoseStamped::ConstPtr tcw)
  {
        
 		cv::Mat color, depth,depthDisp;
@@ -413,6 +429,32 @@ void PointCloudMapper::callback(const sensor_msgs::Image::ConstPtr msgRGB,
       if(depth.type()!=CV_32F)
         depth.convertTo(depth,CV_32F);
 		
+		Eigen::Quaterniond q =Eigen::Quaterniond(Tcw.pose.orientation.w,Tcw.pose.orientation.x,Tcw.pose.orientation.y,Tcw.pose.orientation.z) ;
+		Eigen::AngleAxisd V6(q);
+		//  V6.fromRotationMatrix<double,3,3>(q.toRotationMatrix());
+		Eigen::Isometry3d T = Eigen::Isometry3d::Identity( );  // 三维变换矩阵
+		T.rotate(V6);  // 旋转部分赋值
+		T(0,3)= Tcw.pose.position.x;
+		T(1,3)= Tcw.pose.position.y;
+		T(2,3)= Tcw.pose.position.z;
+		// 已测试接受到的数据没有问题
+		//cout<< GREEN<<"T:"<<T.matrix()<<WHITE<<endl;
+		insertKeyFrame( color, depth,T);
+
+// 	dispDepth(depth,depthDisp,1000);
+// 	cv::imshow("color",color);
+// 	cv::imshow("depth",depthDisp);
+// 	cv::waitKey(1);
+		 
+ }
+void PointCloudMapper::callback_pointcloud(const sensor_msgs::PointCloud2::ConstPtr msgPointCloud,
+								const geometry_msgs::PoseStamped::ConstPtr tcw )
+ {
+       
+	 
+		geometry_msgs::PoseStamped Tcw=*tcw; 
+		 
+		
 	Eigen::Quaterniond q =Eigen::Quaterniond(Tcw.pose.orientation.w,Tcw.pose.orientation.x,Tcw.pose.orientation.y,Tcw.pose.orientation.z) ;
 	Eigen::AngleAxisd V6(q);
 	//  V6.fromRotationMatrix<double,3,3>(q.toRotationMatrix());
@@ -423,19 +465,8 @@ void PointCloudMapper::callback(const sensor_msgs::Image::ConstPtr msgRGB,
 	T(2,3)= Tcw.pose.position.z;
 	// 已测试接受到的数据没有问题
 	//cout<< GREEN<<"T:"<<T.matrix()<<WHITE<<endl;
- 
-    
-	insertKeyFrame( color, depth,T);
-
-// 	dispDepth(depth,depthDisp,1000);
-// 	cv::imshow("color",color);
-// 	cv::imshow("depth",depthDisp);
-// 	cv::waitKey(1);
-		
- 
-         
+  
  }
-
 void PointCloudMapper::getGlobalCloudMap(pcl::PointCloud<pcl::PointXYZRGBA> ::Ptr &outputMap)
 {
 	   unique_lock<mutex> lck_keyframeUpdated( keyFrameUpdateMutex );   

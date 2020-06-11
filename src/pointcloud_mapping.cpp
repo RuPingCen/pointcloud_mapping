@@ -55,17 +55,14 @@ int main(int argc, char **argv)
 	     cout<<"ros init error..."<<endl;
 	    return 0;
     }
- 
-	
-	float fx =515.2888; //Astra camera
-	float cx =317.9098;
-	float fy =517.6610;
-	float cy =241.5734;
-	float resolution =0.01;
-	
-	Mapping::PointCloudMapper mapper(fx,fy,cx,cy,resolution);;
+   ros::start();
+   
+	Mapping::PointCloudMapper mapper;
 	mapper.viewer();
 	
 	cout<<"ros shutdown ..."<<endl;
+	ros::waitForShutdown();
+	ros::shutdown();
+
     return 0;
 }

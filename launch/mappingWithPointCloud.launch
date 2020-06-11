@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<launch>
+ 
+	<node pkg="pointcloud_mapping" type="mappingWithPointCloud" name="mappingWithPointCloud" output="screen">
+ 
+	<param name="topicTcw" type="string" value="/STEREO/CameraPose"/>
+	<param name="topicPointCloud" type="string" value="/elas/point_cloud"/>
+	 
+	<param name="resolution" type="double" value="0.2"/>
+	<param name="queueSize" type="int" value="10"/>
+	<param name="mbuseExact" type="bool" value="0"/>
+
+
+	</node>
+
+
+  <node pkg="octomap_server" type="octomap_server_node" name="octomap_server">
+
+    <!-- resolution in meters per pixel -->
+    <param name="resolution" type="double" value="0.02" />
+
+    <!-- name of the fixed frame, needs to be "/map" for SLAM -->
+    <param name="frame_id" type="string" value="/world" />
+
+    <!-- max range / depth resolution of the kinect in meter -->
+    <param name="sensor_model/max_range" value="50.0" />
+    <param name="latch" value="true" />
+
+    <!-- max/min height for occupancy map, should be in meters -->
+    <param name="pointcloud_max_z" value="1000" />
+    <param name="pointcloud_min_z" value="0" />
+
+    <!-- topic from where pointcloud2 messages are subscribed -->
+    <remap from="/cloud_in" to="/mappingWithPointCloud/Local/PointCloudOutput" />
+
+  </node>
+
+   <!-- RViz -->
+  <node pkg="rviz" type="rviz" name="rviz" respawn="false" output="screen" args="-d $(find pointcloud_mapping)/rviz/kittiWithOctomap.rviz" />
+
+</launch>

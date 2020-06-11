@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<launch>
+ 
+    <node name="pointcloud_mapping" pkg="pointcloud_mapping" type="pointcloud_mapping" output="screen">
+      
+	<param name="topicColor" type="string" value="/RGBD/RGB/Image"/>
+	<param name="topicDepth" type="string" value="/RGBD/Depth/Image"/>
+	<param name="topicTcw" type="string" value="/RGBD/CameraPose"/>
+
+	<param name="fx" type="double" value="520.908620"/>
+	<param name="fy" type="double" value="521.007327"/>
+	<param name="cx" type="double" value="325.141442"/>
+	<param name="cy" type="double" value="249.701764"/>
+	<param name="resolution" type="double" value="0.01"/>
+	<param name="depthfactor" type="double" value="1.0"/>
+	<param name="queueSize" type="int" value="10"/>
+	<param name="mbuseExact" type="bool" value="0"/>
+    </node>
+
+ 
+	 
+</launch>
