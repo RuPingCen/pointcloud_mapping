@@ -71,7 +71,7 @@
 #include <message_filters/sync_policies/exact_time.h>
 #include <message_filters/sync_policies/approximate_time.h>
 
-#include "orbslam2_ros/RGBDPose.h" //自定义消息类型
+//#include "orbslam2_ros/RGBDPose.h" //自定义消息类型
 
  using namespace std;
 namespace Mapping

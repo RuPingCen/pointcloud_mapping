@@ -51,7 +51,6 @@ find_package(catkin REQUIRED COMPONENTS
 	image_transport 
 	compressed_image_transport 
 	compressed_depth_image_transport 
-	orbslam2_ros
 )
  
 
