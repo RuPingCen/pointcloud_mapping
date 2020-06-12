@@ -301,9 +301,9 @@ pcl::PointCloud< PointT >::Ptr generatePointCloud( int index_i)
  */
   void viewer(void)
 {
-	pcl::visualization::CloudViewer pcl_viewer("viewer");
-	pcl::visualization::PCLVisualizer viewer; 
-	viewer.setBackgroundColor(100, 100, 100); // rgb
+	//pcl::visualization::CloudViewer pcl_viewer("viewer");
+	//pcl::visualization::PCLVisualizer viewer; 
+	//viewer.setBackgroundColor(100, 100, 100); // rgb
 	
 	size_t N=0,i=0;
 	bool KFUpdate=false;
@@ -360,7 +360,7 @@ pcl::PointCloud< PointT >::Ptr generatePointCloud( int index_i)
 // 		output.header.stamp=ros::Time::now();
 // 		output.header.frame_id  ="world";
 // 		pub_global_pointcloud.publish(output);
-		 //pcl_viewer.showCloud( globalMap );	 
+		 pcl_viewer.showCloud( globalMap );	 
 		 cout<<"show global map, size="<<globalMap->points.size()<<endl;
  
 		//  if(((N-lastKeyframeSize)>2 )&& (globalMap->points.size()>0))

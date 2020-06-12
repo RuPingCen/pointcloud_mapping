@@ -8,7 +8,6 @@ Panels:
         - /Status1
         - /Right-Image1
         - /Left-Image1
-        - /Path1
       Splitter Ratio: 0.5
     Tree Height: 547
   - Class: rviz/Selection
@@ -29,7 +28,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: Depth-Image
+    SyncSource: Left-Image
 Toolbars:
   toolButtonStyle: 2
 Visualization Manager:
@@ -89,7 +88,7 @@ Visualization Manager:
       Shaft Length: 1
       Shaft Radius: 0.0500000007
       Shape: Arrow
-      Topic: /RGBD/CameraPose
+      Topic: /STEREO/CameraPose
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -112,7 +111,7 @@ Visualization Manager:
       Radius: 0.0299999993
       Shaft Diameter: 0.100000001
       Shaft Length: 0.100000001
-      Topic: /RGBD/Path
+      Topic: /STEREO/Path
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -212,7 +211,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 17.5144043
+      Distance: 48.5688171
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -227,10 +226,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: -1.4847964
+      Pitch: -1.16979694
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.85678768
+      Yaw: 4.75178909
     Saved: ~
 Window Geometry:
   Displays:
