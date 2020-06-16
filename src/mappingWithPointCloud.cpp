@@ -196,7 +196,7 @@ public:
  
 	nh.param<float>("resolution", resolution_, 0.1);
 	nh.param<int>("queueSize", queueSize_, 10);
-	nh.param<bool>("mbuseExact", mbuseExact_, true);
+	nh.param<bool>("buseExact", mbuseExact_, true);
 	
    mbuseExact = mbuseExact_;  //
    mresolution = resolution_;
