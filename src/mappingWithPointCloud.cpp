@@ -301,7 +301,7 @@ pcl::PointCloud< PointT >::Ptr generatePointCloud( int index_i)
  */
   void viewer(void)
 {
-	//pcl::visualization::CloudViewer pcl_viewer("viewer");
+	pcl::visualization::CloudViewer pcl_viewer("viewer");
 	//pcl::visualization::PCLVisualizer viewer; 
 	//viewer.setBackgroundColor(100, 100, 100); // rgb
 	

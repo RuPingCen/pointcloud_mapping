@@ -117,12 +117,12 @@ PointCloudMapper::PointCloudMapper()
 	cout<<"topicTcw: "<<topicTcw<<endl;
  
 
-	cout<<"fx: "<<fx_<<endl;
-	cout<<"fy: "<<fy_<<endl;
-	cout<<"cx: "<<cx_<<endl;
-	cout<<"cy: "<<cy_<<endl;
-	cout<<"resolution: "<<resolution_<<endl;
-	cout<<"DepthMapFactor: "<<depthfactor_<<endl;
+	cout<<"fx: "<<mfx<<endl;
+	cout<<"fy: "<<mfy<<endl;
+	cout<<"cx: "<<mcx<<endl;
+	cout<<"cy: "<<mcy<<endl;
+	cout<<"resolution: "<<mresolution<<endl;
+	cout<<"DepthMapFactor: "<<mDepthMapFactor<<endl;
  	cout<<"queueSize: "<<queueSize<<endl;
 	cout<<"mbuseExact: "<<mbuseExact<<endl;
 	
@@ -450,11 +450,8 @@ void PointCloudMapper::callback(const sensor_msgs::Image::ConstPtr msgRGB,
 void PointCloudMapper::callback_pointcloud(const sensor_msgs::PointCloud2::ConstPtr msgPointCloud,
 								const geometry_msgs::PoseStamped::ConstPtr tcw )
  {
-       
-	 
-		geometry_msgs::PoseStamped Tcw=*tcw; 
-		 
-		
+	geometry_msgs::PoseStamped Tcw=*tcw; 
+
 	Eigen::Quaterniond q =Eigen::Quaterniond(Tcw.pose.orientation.w,Tcw.pose.orientation.x,Tcw.pose.orientation.y,Tcw.pose.orientation.z) ;
 	Eigen::AngleAxisd V6(q);
 	//  V6.fromRotationMatrix<double,3,3>(q.toRotationMatrix());
@@ -465,7 +462,6 @@ void PointCloudMapper::callback_pointcloud(const sensor_msgs::PointCloud2::Const
 	T(2,3)= Tcw.pose.position.z;
 	// 已测试接受到的数据没有问题
 	//cout<< GREEN<<"T:"<<T.matrix()<<WHITE<<endl;
-  
  }
 void PointCloudMapper::getGlobalCloudMap(pcl::PointCloud<pcl::PointXYZRGBA> ::Ptr &outputMap)
 {
