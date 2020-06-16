@@ -8,7 +8,7 @@
 	 
 	<param name="resolution" type="double" value="0.2"/>
 	<param name="queueSize" type="int" value="10"/>
-	<param name="mbuseExact" type="bool" value="0"/>
+	<param name="buseExact" type="bool" value="0"/>
 
 
 	</node>

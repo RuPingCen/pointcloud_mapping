@@ -14,7 +14,7 @@
 	<param name="resolution" type="double" value="0.01"/>
 	<param name="depthfactor" type="double" value="1.0"/>
 	<param name="queueSize" type="int" value="10"/>
-	<param name="mbuseExact" type="bool" value="0"/>
+	<param name="buseExact" type="bool" value="0"/>
     </node>
 
   <node pkg="octomap_server" type="octomap_server_node" name="octomap_server">
