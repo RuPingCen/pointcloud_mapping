@@ -12,7 +12,7 @@
 	<param name="cx" type="double" value="317.909815"/>
 	<param name="cy" type="double" value="241.573428"/>
 	<param name="resolution" type="double" value="0.01"/>
-	<param name="mdepthfactor" type="double" value="1"/>
+	<param name="depthfactor" type="double" value="1"/>
 	<param name="queueSize" type="int" value="10"/>
 	<param name="mbuseExact" type="bool" value="0"/>
     </node>

@@ -117,12 +117,12 @@ PointCloudMapper::PointCloudMapper()
 	cout<<"topicTcw: "<<topicTcw<<endl;
  
 
-	cout<<"fx: "<<fx_<<endl;
-	cout<<"fy: "<<fy_<<endl;
-	cout<<"cx: "<<cx_<<endl;
-	cout<<"cy: "<<cy_<<endl;
-	cout<<"resolution: "<<resolution_<<endl;
-	cout<<"DepthMapFactor: "<<depthfactor_<<endl;
+	cout<<"fx: "<<mfx<<endl;
+	cout<<"fy: "<<mfy<<endl;
+	cout<<"cx: "<<mcx<<endl;
+	cout<<"cy: "<<mcy<<endl;
+	cout<<"resolution: "<<mresolution<<endl;
+	cout<<"DepthMapFactor: "<<mDepthMapFactor<<endl;
  	cout<<"queueSize: "<<queueSize<<endl;
 	cout<<"mbuseExact: "<<mbuseExact<<endl;
 	
