@@ -1,12 +1,14 @@
 /**
- * @function 接受RGB图像 Depth深度图像  相机位姿Tcw
+ * @function 接受点云和 相机位姿Tcw 拼接生成全局点云
  * 
  * 
  * @param topicColor
  * @param topicDepth
  * @param topicTcw
  * @param cameraParamFile  
- * 修改于高翔发布的点云构建线程
+ * 
+ * 2019-12-1 修改于高翔发布的点云构建线程
+ * 2020-7-5 通过创建一个opencv的窗口来获取按键的值，用于在建图结束的时候保存地图。
  * cenruping@vip.qq.com
  */
   
@@ -23,6 +25,7 @@
 #include <condition_variable>
 #include <ctime>
 #include <climits>
+ 
 
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
@@ -45,6 +48,7 @@
 #include <pcl/filters/filter.h>
 #include<pcl/filters/passthrough.h>
  #include<pcl/filters/voxel_grid.h>
+ 
  
  #include <opencv2/opencv.hpp>
  #include <ros/ros.h>
@@ -257,19 +261,19 @@ pcl::PointCloud< PointT >::Ptr generatePointCloud( int index_i)
 		PointCloud::Ptr cloud_after_PassThrough(new PointCloud);//
 		passthrough.setInputCloud(tmp);//输入点云
 		passthrough.setFilterFieldName("z");//对z轴进行操作
-		passthrough.setFilterLimits(-1.0,30.0);//设置直通滤波器操作范围
+		passthrough.setFilterLimits(-1.0,5.0);//设置直通滤波器操作范围
 		passthrough.setFilterLimitsNegative(false);//true表示保留范围内，false表示保留范围外
 		passthrough.filter(*tmp);//执行滤波，过滤结果保存在 cloud_after_PassThrough
 
 		passthrough.setInputCloud(tmp);//输入点云
-		passthrough.setFilterFieldName("y");//对z轴进行操作
-		passthrough.setFilterLimits(-1.0,5.0);//设置直通滤波器操作范围
+		passthrough.setFilterFieldName("y");//对y轴进行操作
+		passthrough.setFilterLimits(-1.0,3.0);//设置直通滤波器操作范围
 		passthrough.setFilterLimitsNegative(false);//true表示保留范围内，false表示保留范围外
 		passthrough.filter(*tmp);//执行滤波，过滤结果保存在 cloud_after_PassThrough
 		
 		passthrough.setInputCloud(tmp);//输入点云
-		passthrough.setFilterFieldName("x");//对z轴进行操作
-		passthrough.setFilterLimits(-15.0,15.0);//设置直通滤波器操作范围
+		passthrough.setFilterFieldName("x");//对x轴进行操作
+		passthrough.setFilterLimits(-5.0,5.0);//设置直通滤波器操作范围
 		passthrough.setFilterLimitsNegative(false);//false就是 删除此区间外的
 		passthrough.filter(*cloud_after_PassThrough);//执行滤波，过滤结果保存在 cloud_after_PassThrough
          	//std::cout << "直通滤波后点云数据点数：" << cloud_after_PassThrough->points.size() << std::endl;
@@ -282,15 +286,15 @@ pcl::PointCloud< PointT >::Ptr generatePointCloud( int index_i)
 		//cloud_after_PassThrough->swap( *cloud_voxel_tem );
 		
 		
-			mLastGlobalPointCloudID++; //用于指示处理到哪一个位置
-			PointCloud::Ptr cloud1(new PointCloud);
-			pcl::transformPointCloud( *cloud_voxel_tem, *cloud1, T.matrix());
-			
-			chrono::steady_clock::time_point t2 = chrono::steady_clock::now();
-			chrono::duration<double> time_used = chrono::duration_cast<chrono::duration<double>>( t2-t1 );
+		mLastGlobalPointCloudID++; //用于指示处理到哪一个位置
+		PointCloud::Ptr cloud1(new PointCloud);
+		pcl::transformPointCloud( *cloud_voxel_tem, *cloud1, T.matrix());
 		
-			cout<<GREEN<<"generate point cloud from  kf-ID:"<<mLastGlobalPointCloudID<<", size="<<cloud1->points.size()
-			<<", cost time: "<<time_used.count()*1000<<" ms ."<<WHITE<<endl;
+		chrono::steady_clock::time_point t2 = chrono::steady_clock::now();
+		chrono::duration<double> time_used = chrono::duration_cast<chrono::duration<double>>( t2-t1 );
+	
+		cout<<GREEN<<"generate point cloud from  kf-ID:"<<mLastGlobalPointCloudID<<", size="<<cloud1->points.size()
+		<<", cost time: "<<time_used.count()*1000<<" ms ."<<WHITE<<endl;
 
  
       return cloud1;
@@ -307,7 +311,8 @@ pcl::PointCloud< PointT >::Ptr generatePointCloud( int index_i)
 	
 	size_t N=0,i=0;
 	bool KFUpdate=false;
-
+	cv::namedWindow("pointcloud");
+	//pcl::visualization::KeyboardEvent event;
 	//ros::AsyncSpinner spinner(2); // Use 1threads
 	spinner.start();
 	while(ros::ok())
@@ -364,15 +369,34 @@ pcl::PointCloud< PointT >::Ptr generatePointCloud( int index_i)
 		 cout<<"show global map, size="<<globalMap->points.size()<<endl;
  
 		//  if(((N-lastKeyframeSize)>2 )&& (globalMap->points.size()>0))
-		 if((N==i )&& (globalMap->points.size()>0))
-				shutdown(); //处理到最后一帧的时候保存点云，写文件很耗时
+		// if((N==i )&& (globalMap->points.size()>0))
+		//		shutdown(); //处理到最后一帧的时候保存点云，写文件很耗时
 		  
 		   lastKeyframeSize = i;
 		 //viewer.addPointCloud(globalMap, "globalMap"); 
 		//  viewer.spin();
 		 
-	   }	
-	  
+	   }
+
+// 	   	if (event.keyDown()) 
+// 	{
+// 		//打印出按下的按键信息
+// 		cout << event.getKeySym() << endl;
+// 	}
+	  int key_value=cv::waitKey(1);
+ 
+ 	  switch (key_value) 
+       {
+ 		case 's': 
+							cout<<"key_value:"<<key_value<<endl; 
+							shutdown(); 
+							break;
+//         case 'S': cout<<"key_value:"<<key_value<<endl; break;
+//         case '\r':break;
+//         case 0x18:break;//cancel
+//         case 0x1B:break;//escape
+           default:break;
+         }
 	}
 	shutdown();
 	spinner.stop();
@@ -410,10 +434,14 @@ void callback_pointcloud(const sensor_msgs::PointCloud2::ConstPtr msgPointCloud,
 
  void shutdown()
 {
-	string save_path = "/home/crp/resultPointCloudFile_KITTI.pcd";
-	cout<<"save pcd files to :  "<<save_path<<endl;
-	pcl::io::savePCDFile(save_path,*globalMap);
-
+		   if( globalMap->points.size()>0)
+		   {	
+				string save_path = "/home/crp/resultPointCloudFile_KITTI.pcd";
+				cout<<"save pcd files to :  "<<save_path<<endl;
+				pcl::io::savePCDFile(save_path,*globalMap);
+		   }
+		   else
+			   cout<<"globalMap is empty, Nothing to save ... "<<endl;
 }
 };
 

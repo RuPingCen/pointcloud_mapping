@@ -6,7 +6,7 @@
 	<param name="topicTcw" type="string" value="/STEREO/CameraPose"/>
 	<param name="topicPointCloud" type="string" value="/elas/point_cloud"/>
 	 
-	<param name="resolution" type="double" value="0.2"/>
+	<param name="resolution" type="double" value="0.1"/>
 	<param name="queueSize" type="int" value="10"/>
 	<param name="buseExact" type="bool" value="0"/>
 
@@ -36,6 +36,6 @@
   </node>
 
    <!-- RViz -->
-  <node pkg="rviz" type="rviz" name="rviz" respawn="false" output="screen" args="-d $(find pointcloud_mapping)/rviz/kittiWithOctomap.rviz" />
+  <!--node pkg="rviz" type="rviz" name="rviz" respawn="false" output="screen" args="-d $(find pointcloud_mapping)/rviz/kittiWithOctomap.rviz" /-->
 
 </launch>
