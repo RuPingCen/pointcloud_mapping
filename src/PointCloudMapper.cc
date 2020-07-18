@@ -72,7 +72,7 @@ PointCloudMapper::PointCloudMapper()
 	queueSize =10;
  
 	std::string topicColor ,topicDepth,topicTcw,topicPointCloud;
- 
+
 	
 	if(ros::param::get("~topicColor" ,topicColor))
 	;
@@ -145,11 +145,11 @@ PointCloudMapper::PointCloudMapper()
 	pub_global_pointcloud= nh.advertise<sensor_msgs::PointCloud2> ("Global/PointCloudOutput", 1); 
 	pub_local_pointcloud = nh.advertise<sensor_msgs::PointCloud2> ("Local/PointCloudOutput", 10); 
      
- //viewerThread = make_shared<thread>( bind(&PointCloudMapping::viewer, this ) );
+  
 }
 PointCloudMapper::~PointCloudMapper()
 {
-	//viewerThread->join();
+	 
 	shutdown();
 }
 
@@ -159,13 +159,10 @@ void PointCloudMapper::insertKeyFrame( cv::Mat& color, cv::Mat& depth,Eigen::Iso
 {
 	unique_lock<mutex> lck(keyframeMutex);
 
-	mvGlobalPointCloudsPose.push_back(T);    // 每个点云的pose
+	mvGlobalPointCloudsPose.push_back(T);     
 	colorImgs.push_back( color.clone() );
 	depthImgs.push_back( depth.clone() );
-
-	// mvLocalPointCloudsPose.clear();     
-	//mvLocalColorImgs.clear();     
-	//mvLocalDepthImgs.clear();     
+  
 
 	//mLastGlobalPointCloudID=mGlobalPointCloudID;
 	mGlobalPointCloudID++;
@@ -190,10 +187,10 @@ pcl::PointCloud< PointCloudMapper::PointT >::Ptr PointCloudMapper::generatePoint
             float d = depth.ptr<float>(m)[n]/mDepthMapFactor;
             if (d < 0.01 || d>10)
 			{
-// 				if(d < 0.01)
-// 				cout<<".";
-// 				else if(d>10)
-// 				cout<<"+";
+				//if(d < 0.01)
+				//cout<<".";
+				//else if(d>10)
+				//cout<<"+";
 				continue;
 			}
             PointT p;
@@ -225,40 +222,7 @@ pcl::PointCloud< PointCloudMapper::PointT >::Ptr PointCloudMapper::generatePoint
 	  mLastGlobalPointCloudID++;
 	 return cloud1;
 }
-pcl::PointCloud< PointCloudMapper::PointT >::Ptr PointCloudMapper::generatePointCloud( cv::Mat& color, cv::Mat& depth)
-{
-     chrono::steady_clock::time_point t1 = chrono::steady_clock::now();
-    PointCloud::Ptr tmp( new PointCloud() );// point cloud is null ptr
-    
-    for ( int m=0; m<depth.rows; m+=3 )
-    {
-        for ( int n=0; n<depth.cols; n+=3 )
-        {
-            float d = depth.ptr<float>(m)[n]/1000;
-            if (d < 0.01 || d>10)
-				continue;
-                
-            PointT p;
-            p.z = d;
-            p.x = ( n - mcx) * p.z / mfx;
-            p.y = ( m -mcy) * p.z / mfy;  
-            
-            p.b = color.ptr<uchar>(m)[n*3];
-            p.g = color.ptr<uchar>(m)[n*3+1];
-            p.r = color.ptr<uchar>(m)[n*3+2];
-                
-            tmp->points.push_back(p);
-        }
-    }
-     
-     cout<<"generate point cloud from  kf-ID:"<<mGlobalPointCloudID<<", size="<<tmp->points.size();
-	 
-     chrono::steady_clock::time_point t2 = chrono::steady_clock::now();
-     chrono::duration<double> time_used = chrono::duration_cast<chrono::duration<double>>( t2-t1 );
-     cout<<"generate point cloud  cost time: "<<time_used.count()*1000<<" ms ."<<endl;
-     
-    return tmp;
-}
+ 
 
 /*
  * 
@@ -302,15 +266,13 @@ pcl::PointCloud< PointCloudMapper::PointT >::Ptr PointCloudMapper::generatePoint
 			  if((mvGlobalPointCloudsPose.size() != colorImgs.size() )|| (mvGlobalPointCloudsPose.size()!= depthImgs.size() ) || (depthImgs.size() != colorImgs.size() ))
 			  {
 			   cout<<" depthImgs.size != colorImgs.size()  "<<endl;
-			   //cout<<"depthImgs.size(): "<<depthImgs.size()<<endl;
-			   //cout<<"colorImgs.size(): "<<colorImgs.size()<<endl;
 			   continue;
 			  }
 			  PointCloud::Ptr tem_cloud1( new PointCloud() );
 			  cout<<"i: "<<i<<"  mvPosePointClouds.size(): "<<mvGlobalPointCloudsPose.size()<<endl;
 			  //生成一幅点云大约在０．１s左右 点云数据 
 			  tem_cloud1= generatePointCloud(colorImgs[i], depthImgs[i],mvGlobalPointCloudsPose[i]); 
- 
+
 			  if(tem_cloud1->empty())
 			  continue;
 
@@ -337,7 +299,7 @@ pcl::PointCloud< PointCloudMapper::PointT >::Ptr PointCloudMapper::generatePoint
 		
 		 lastKeyframeSize = i;
 		 sensor_msgs::PointCloud2 output;  
-		 pcl::toROSMsg(*globalMap,output);// 转换成ROS下的数据类型 最终通过topic发布
+		 pcl::toROSMsg(*globalMap,output);
 		 output.header.stamp=ros::Time::now();
 		 output.header.frame_id  ="world";
 		 pub_global_pointcloud.publish(output);
