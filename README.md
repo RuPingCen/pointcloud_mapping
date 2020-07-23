@@ -4,7 +4,7 @@
 
 详细的教程请参考csdn博客系列教程：[ORB-SLAM2 在线构建稠密点云](https://blog.csdn.net/crp997576280/article/details/88899163)
 
-![Distribute SLAM](https://github.com/RuPingCen/pointcloud_mapping/raw/v1.0.0/images/fig1.png)
+![Distribute SLAM](https://github.com/RuPingCen/pointcloud_mapping/raw/v1.0.0/images/image-1.png)
 
 使用说明
 
@@ -74,6 +74,9 @@ roslaunch pointcloud_mapping tum1.launch
 ```
 roslaunch pointcloud_mapping pointcloud_mapping.launch
 ```
+
+
+![STEREO Model Distribute SLAM](https://github.com/RuPingCen/pointcloud_mapping/raw/v1.0.0/images/image-2.png)
 
 
 
