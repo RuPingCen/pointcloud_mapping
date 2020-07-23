@@ -260,20 +260,20 @@ pcl::PointCloud< PointT >::Ptr generatePointCloud( int index_i)
 		/*方法一：直通滤波器对点云进行处理。*/
 		PointCloud::Ptr cloud_after_PassThrough(new PointCloud);//
 		passthrough.setInputCloud(tmp);//输入点云
-		passthrough.setFilterFieldName("z");//对z轴进行操作
-		passthrough.setFilterLimits(-1.0,5.0);//设置直通滤波器操作范围
+		passthrough.setFilterFieldName("z");//对z轴进行操作   
+		passthrough.setFilterLimits(-1.0,15.0);//设置直通滤波器操作范围 KITTI 参数 -1.0,15.0
 		passthrough.setFilterLimitsNegative(false);//true表示保留范围内，false表示保留范围外
 		passthrough.filter(*tmp);//执行滤波，过滤结果保存在 cloud_after_PassThrough
 
 		passthrough.setInputCloud(tmp);//输入点云
 		passthrough.setFilterFieldName("y");//对y轴进行操作
-		passthrough.setFilterLimits(-1.0,3.0);//设置直通滤波器操作范围
+		passthrough.setFilterLimits(-6.0,6.0);//设置直通滤波器操作范围 KITTI 参数 -6.0,6.0
 		passthrough.setFilterLimitsNegative(false);//true表示保留范围内，false表示保留范围外
 		passthrough.filter(*tmp);//执行滤波，过滤结果保存在 cloud_after_PassThrough
 		
 		passthrough.setInputCloud(tmp);//输入点云
 		passthrough.setFilterFieldName("x");//对x轴进行操作
-		passthrough.setFilterLimits(-5.0,5.0);//设置直通滤波器操作范围
+		passthrough.setFilterLimits(-6.0,6.0);//设置直通滤波器操作范围 KITTI 参数 -6.0,6.0
 		passthrough.setFilterLimitsNegative(false);//false就是 删除此区间外的
 		passthrough.filter(*cloud_after_PassThrough);//执行滤波，过滤结果保存在 cloud_after_PassThrough
          	//std::cout << "直通滤波后点云数据点数：" << cloud_after_PassThrough->points.size() << std::endl;

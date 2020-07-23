@@ -107,7 +107,7 @@ protected:
 	float mDepthMapFactor=1000.0;
 	float mcx=0,mcy=0,mfx=0,mfy=0;
     pcl::VoxelGrid<PointT>  voxel; //点云显示精度
-    float mDepthMapFactor =1; //深度图尺度因子
+    //float mDepthMapFactor =1; //深度图尺度因子
      size_t  lastKeyframeSize =0; // 
      size_t mGlobalPointCloudID=0; //点云ID
      size_t  mLastGlobalPointCloudID=0;
