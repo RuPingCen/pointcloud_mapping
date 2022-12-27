@@ -11,10 +11,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Warray-bounds -Wtype-limits -Wreturn-ty
 
 # Check for c++11 support
 INCLUDE(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-IF(COMPILER_SUPPORTS_CXX11)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+IF(COMPILER_SUPPORTS_CXX14)
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 ELSEIF(COMPILER_SUPPORTS_CXX0X)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 ELSE()
@@ -30,6 +30,7 @@ ENDIF()
 find_package(catkin REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(OpenMP)
+find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED)
 #find_package(Pangolin REQUIRED )
 
@@ -166,8 +167,10 @@ include_directories(include
 	${catkin_INCLUDE_DIRS}
 	${OpenCV_INCLUDE_DIRS}
 	${PCL_INCLUDE_DIRS}
+	${EIGEN3_INCLUDE_DIR}
   	src
 )
+add_definitions(${EIGEN_DEFINITIONS})
 
  ## Declare a C++ executable
 add_executable(pointcloud_mapping  src/pointcloud_mapping.cpp  src/PointCloudMapper.cc)
